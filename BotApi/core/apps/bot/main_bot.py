@@ -4,6 +4,8 @@ from .bot_messges import *
 
 bot = AsyncTeleBot(settings.BOT_TOKEN, parse_mode='HTML')
 
+print('Bot started successfully!!!')
+
 
 @bot.message_handler(commands=['start'])
 async def send_welcome(message):

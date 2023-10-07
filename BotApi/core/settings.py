@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
     # Apps
     'core.apps.bot',
+    'core.apps.management',
 
     # Other dependents'
 
