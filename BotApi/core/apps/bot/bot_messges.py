@@ -17,10 +17,24 @@ you_talking_with = """
 """
 
 to_exit = """
-    <b>To exit, write the command: /exit </b>
+    <b>To quit, write the command: /quit </b>
 """
 
 you_out = """
     You are out.
+"""
+
+list_of_commands = """
+    <b>Commands</b>
+
+    <b>/speaking_with_bot - Start speaking with chatbot</b>
+    <b>/new_chat - Start new chat with ai</b>
+    <b>/menu - open the menu</b>
+    <b>/quit - To quit</b>
+
+"""
+
+unknown_command_message = """
+    <b>Unknown command, /help to show all commands </b>
 """
 

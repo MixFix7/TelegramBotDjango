@@ -24,17 +24,15 @@ async def send_welcome(message):
     await bot.reply_to(message, welcome_message)
 
 
-@bot.message_handler(commands=['speaking_with_bot'])
-async def handle_speaking_with_chatbot(message):
-    await bot.send_message(message.chat.id, you_talking_with + '<strong>Chatbot</strong>')
-    await bot.send_message(message.chat.id, to_exit)
-    state[message.from_user.id] = 'speaking_with_bot'
+@bot.message_handler(commands=['quit'])
+async def quit(message):
+    await bot.send_message(message.chat.id, you_out)
+    state[message.from_user.id] = None
 
 
-@bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'speaking_with_bot')
-async def chatbot_message(message):
-    gpt_answer = logic.generate_response(message.text)
-    await bot.send_message(message.chat.id, gpt_answer)
+@bot.message_handler(commands=['help'])
+async def command_help(message):
+    await bot.send_message(message.chat.id, list_of_commands)
 
 
 @bot.message_handler(commands=['new_chat'])
@@ -43,25 +41,44 @@ async def handle_new_chat(message):
     state[message.from_user.id] = 'new_chat'
 
 
+@bot.message_handler(commands=['speaking_with_bot'])
+async def handle_speaking_with_chatbot(message):
+    await bot.send_message(message.chat.id, you_talking_with)
+    await bot.send_message(message.chat.id, to_exit)
+    state[message.from_user.id] = 'speaking_with_bot'
+
+
+@bot.message_handler(func=lambda message: state.get(message.from_user.id) is None)
+async def handle_unknown_command(message):
+    await bot.send_message(message.chat.id, unknown_command_message, parse_mode="HTML")
+
+
+@bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'speaking_with_bot')
+async def chatbot_message(message):
+    gpt_answer = logic.generate_response(message.text)
+    await bot.send_message(message.chat.id, gpt_answer)
+
+
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'new_chat')
 async def start_new_chat(message):
-    new_chat_data = {
-        'chat_id': message.chat.id,
-        'name': message.text,
-        'chat_username': message.sender.id,
-    }
-
     try:
-        Chat.objects.create(new_chat_data)
+        new_chat_data = {
+            'chat_id': message.chat.id,
+            'name': message.text,
+            'chat_username': message.from_user.id,
+        }
+
+        Chat.objects.create(
+            chat_id=message.chat.id,
+            name=message.text,
+            chat_username=message.from_user.id,
+        )
         await bot.send_message(message.chat.id, chat_created_successfully)
     except Exception as e:
         await bot.send_message(message.chat.id, error_message)
 
 
-@bot.message_handler(commands=['quit'])
-async def quit(message):
-    await bot.send_message(message.chat.id, you_out)
-    state[message.from_user.id] = None
+
 
 
 
