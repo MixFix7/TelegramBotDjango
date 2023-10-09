@@ -1,7 +1,10 @@
 import telebot
 from telebot.async_telebot import AsyncTeleBot
 from telebot import State
+
 from django.conf import settings
+from asgiref.sync import sync_to_async
+
 from .bot_messges import *
 from . import logic
 
@@ -62,20 +65,19 @@ async def chatbot_message(message):
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'new_chat')
 async def start_new_chat(message):
     try:
-        new_chat_data = {
-            'chat_id': message.chat.id,
-            'name': message.text,
-            'chat_username': message.from_user.id,
-        }
+        create_chat = sync_to_async(Chat.objects.create)
 
-        Chat.objects.create(
+        print(message)
+
+        await create_chat(
             chat_id=message.chat.id,
             name=message.text,
-            chat_username=message.from_user.id,
+            chat_username=message.from_user.username,
         )
+ 
         await bot.send_message(message.chat.id, chat_created_successfully)
     except Exception as e:
-        await bot.send_message(message.chat.id, error_message)
+        await bot.send_message(message.chat.id, f'Error: {e}')
 
 
 
