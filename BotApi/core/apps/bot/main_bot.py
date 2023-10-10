@@ -1,4 +1,5 @@
 import telebot
+
 from telebot.async_telebot import AsyncTeleBot
 from telebot import State
 
@@ -58,8 +59,8 @@ async def handle_unknown_command(message):
 
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'speaking_with_bot')
 async def chatbot_message(message):
-    gpt_answer = logic.generate_response(message.text)
-    await bot.send_message(message.chat.id, gpt_answer)
+    gpt_answer = await logic.run_all(message.text)
+    await bot.send_message(message.chat.id, gpt_answer[0])
 
 
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'new_chat')

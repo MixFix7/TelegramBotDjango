@@ -1,19 +1,40 @@
 import openai
 import asyncio
-from django.conf import settings
+import g4f
+import html
 
 
-openai.api_key = settings.OPENAI_API_KEY
+_providers = [
+    g4f.Provider.Aichat,
+    g4f.Provider.ChatBase,
+    g4f.Provider.Bing,
+    g4f.Provider.CodeLinkAva,
+    g4f.Provider.DeepAi,
+    g4f.Provider.GptGo,
+    g4f.Provider.Wewordle,
+    g4f.Provider.You,
+    g4f.Provider.Yqcloud
+]
 
 
-def generate_response(message):
-    prompt = f"System: 'Hello you are friendly assistant. Your model is GPT-4' \nUser: {message}"
+async def run_provider(provider: g4f.Provider.AsyncProvider, message: str) -> object:
+    try:
+        response = await provider.create_async(
+            model=g4f.models.default.name,
+            messages=[{'role': 'user', 'content': message}]
+        )
+        print(f"{provider.__name__}:", response)
+        return response
 
-    response = openai.Completion.create(
-        engine='text-davinci-003',
-        prompt=prompt,
-        max_tokens=400,
-    )
+    except Exception as e:
+        print(f"{provider.__name__}:", e)
+        return f"Error: {e}"
 
-    return response.choices[0].text
+
+async def run_all(message):
+    return await asyncio.gather(run_provider(g4f.Provider.You, message))
+
+
+def text_to_html(text):
+    return html.escape(text)
 
