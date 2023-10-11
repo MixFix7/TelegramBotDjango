@@ -3,6 +3,7 @@ import requests
 
 from telebot.async_telebot import AsyncTeleBot
 from telebot import State
+from telebot import types
 
 from django.conf import settings
 from asgiref.sync import sync_to_async
@@ -61,10 +62,15 @@ async def handle_speaking_with_chatbot(message):
 async def select_chat_from_list(message):
     try:
         response = requests.get(f"{server_url}/chats/get-user-chats-by-id/{message.from_user.id}/")
-        print(response.json())
 
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         for chat in response.json():
-            await bot.send_message(message.chat.id, chat['name'])
+            chat_name = chat['name']
+            button = types.KeyboardButton(chat_name)
+            keyboard.add(button)
+
+        await bot.send_message(message.chat.id, select_chat_message, reply_markup=keyboard)
+        state[message.from_user.id] = 'select_chat'
 
     except Exception as e:
         await bot.send_message(message.chat.id, f"Error: {e}")
@@ -100,6 +106,17 @@ async def start_new_chat(message):
         await bot.send_message(message.chat.id, chat_created_successfully)
     except Exception as e:
         await bot.send_message(message.chat.id, f'Error: {e}')
+
+
+@bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'select_chat')
+async def open_selected_chat(message):
+    response = requests.get(f"{server_url}/chats/get-chat-by-id/{message.text}/")
+    chat_data = response.json()
+    print(chat_data)
+
+    await bot.send_message(message.chat.id, f"You in chat:")
+
+
 
 
 

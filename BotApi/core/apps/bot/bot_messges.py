@@ -38,3 +38,5 @@ unknown_command_message = """
     <b>Unknown command, /help to show all commands </b>
 """
 
+select_chat_message = "<b>Select a chat:</b>"
+
