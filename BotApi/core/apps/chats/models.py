@@ -3,9 +3,9 @@ from datetime import datetime
 
 
 class Chat(models.Model):
-    chat_id = models.IntegerField()
     name = models.CharField(max_length=100)
-    chat_username = models.CharField(max_length=200)
+    chat_user_id = models.CharField(max_length=100)
+    chat_username = models.CharField(max_length=100)
     personality_description = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -22,3 +22,4 @@ class Message(models.Model):
     def __str__(self):
         message_dispatch_date = self.dispatch_date.strftime('%Y-%m-%d %H:%M:%S')
         return f"Message of {self.sender}, sent at {message_dispatch_date} "
+

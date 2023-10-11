@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import *
 
-# Register your models here.
+for name, obj in models.__dict__.items():
+    if isinstance(obj, type) and isinstance(obj, models.Model):
+        admin.site.register(obj)
