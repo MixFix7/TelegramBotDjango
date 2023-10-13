@@ -9,7 +9,7 @@ class GetUserChatsById(generics.ListAPIView):
 
     def get_queryset(self):
         user_id = self.kwargs['user_id']
-        queryset = Chat.objects.get(chat_user_id=user_id)
+        queryset = Chat.objects.filter(chat_user_id=user_id)
         return queryset
 
 
@@ -25,7 +25,7 @@ class CreateNewChat(generics.CreateAPIView):
 
 
 class SendMessage(generics.CreateAPIView):
-    serializer_class = MessagesSerializer
+    serializer_class = MessageCreateSerializer
 
     def perform_create(self, serializer):
         chat_id = self.request.data.get('chat_id')

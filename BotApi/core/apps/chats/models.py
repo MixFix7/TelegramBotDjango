@@ -9,7 +9,7 @@ class Chat(models.Model):
     personality_description = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"Chat with {self.chat_username}"
+        return f"Chat: {self.name} with {self.chat_username}"
 
 
 class Message(models.Model):

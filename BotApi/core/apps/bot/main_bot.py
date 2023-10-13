@@ -76,18 +76,43 @@ async def select_chat_from_list(message):
         await bot.send_message(message.chat.id, f"Error: {e}")
 
 
+"""STATE COMMANDS HANDLERS"""
+
+
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) is None)
 async def handle_unknown_command(message):
     await bot.send_message(message.chat.id, unknown_command_message, parse_mode="HTML")
 
 
-"""STATE COMMANDS HANDLERS"""
-
-
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'speaking_with_bot')
-async def chatbot_message(message):
+async def speak_with_chatbot(message):
     gpt_answer = await logic.run_all(message.text)
     await bot.send_message(message.chat.id, gpt_answer[0])
+
+
+@bot.message_handler(func=lambda message: state.get(message.from_user.id).startswith('talking_with_chatbot'))
+async def send_message_chatbot(message):
+    try:
+        user_id = message.from_user.id
+        chat_id = int(state.get(user_id)[22:])
+        sender_name = message.from_user.first_name
+        text = message.text
+
+        data = {
+            'chat_id': chat_id,
+            'text': text,
+            'sender': sender_name
+        }
+
+        response = requests.post(f"{server_url}/chats/send-message/", data=data)
+
+        if response.status_code == 201:
+            await bot.send_message(message.chat.id, "Message sent successfully")
+        else:
+            await bot.send_message(message.chat.id, "Failed to send message")
+
+    except Exception as e:
+        await bot.send_message(message.chat.id, f"Error: {e}")
 
 
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'new_chat')
@@ -113,8 +138,10 @@ async def open_selected_chat(message):
     response = requests.get(f"{server_url}/chats/get-chat-by-id/{message.text}/")
     chat_data = response.json()
     print(chat_data)
+    state[message.from_user.id] = f"talking_with_chatbot: {chat_data['id']}"
 
-    await bot.send_message(message.chat.id, f"You in chat:")
+    reply_keyboard = types.ReplyKeyboardRemove()
+    await bot.send_message(message.chat.id, f"You in chat: {chat_data['name']}", reply_markup=reply_keyboard)
 
 
 
