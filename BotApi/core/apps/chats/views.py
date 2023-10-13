@@ -14,6 +14,12 @@ class GetUserChatsById(generics.ListAPIView):
 
 
 class GetChatById(generics.RetrieveAPIView):
+    queryset = Chat.objects.all()
+    serializer_class = ChatSerializer
+    lookup_field = 'id'
+
+
+class GetChatByName(generics.RetrieveAPIView):
     queryset = Chat.objects.all()  # Define the queryset to include all chats
     serializer_class = ChatSerializer
     lookup_field = 'name'  # Set the lookup field to 'name' for searching by chat name

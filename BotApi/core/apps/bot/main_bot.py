@@ -13,7 +13,6 @@ from . import logic
 
 from core.apps.chats.models import *
 
-
 bot = AsyncTeleBot(settings.BOT_TOKEN, parse_mode='HTML')
 
 state = {}
@@ -84,10 +83,10 @@ async def handle_unknown_command(message):
     await bot.send_message(message.chat.id, unknown_command_message, parse_mode="HTML")
 
 
-@bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'speaking_with_bot')
-async def speak_with_chatbot(message):
-    gpt_answer = await logic.run_all(message.text)
-    await bot.send_message(message.chat.id, gpt_answer[0])
+# @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'speaking_with_bot')
+# async def speak_with_chatbot(message):
+#     gpt_answer = await logic.get_message_from_gpt(message.text)
+#     await bot.send_message(message.chat.id, gpt_answer[0])
 
 
 @bot.message_handler(func=lambda message: state.get(message.from_user.id).startswith('talking_with_chatbot'))
@@ -107,7 +106,7 @@ async def send_message_chatbot(message):
         response = requests.post(f"{server_url}/chats/send-message/", data=data)
 
         if response.status_code == 201:
-            await bot.send_message(message.chat.id, "Message sent successfully")
+            await send_message_from_chatbot(message)
         else:
             await bot.send_message(message.chat.id, "Failed to send message")
 
@@ -118,7 +117,6 @@ async def send_message_chatbot(message):
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'new_chat')
 async def start_new_chat(message):
     try:
-        print(message)
         data = {
             'name': message.text,
             'chat_user_id': message.from_user.id,
@@ -126,8 +124,7 @@ async def start_new_chat(message):
         }
 
         response = requests.post(f"{server_url}/chats/create-new-chat/", data=data)
-        print(response.status_code)
- 
+
         await bot.send_message(message.chat.id, chat_created_successfully)
     except Exception as e:
         await bot.send_message(message.chat.id, f'Error: {e}')
@@ -135,24 +132,46 @@ async def start_new_chat(message):
 
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'select_chat')
 async def open_selected_chat(message):
-    response = requests.get(f"{server_url}/chats/get-chat-by-id/{message.text}/")
+    chat_name = message.text
+    response = requests.get(f"{server_url}/chats/get-chat-by-name/{chat_name}/")
     chat_data = response.json()
-    print(chat_data)
     state[message.from_user.id] = f"talking_with_chatbot: {chat_data['id']}"
 
     reply_keyboard = types.ReplyKeyboardRemove()
     await bot.send_message(message.chat.id, f"You in chat: {chat_data['name']}", reply_markup=reply_keyboard)
 
 
+async def send_message_from_chatbot(message):
+    try:
+        chat_id = state.get(message.from_user.id)[22:]
+        response = requests.get(f"{server_url}/chats/get-chat-by-id/{chat_id}/")
+
+        if response.status_code != 200:
+            await bot.send_message(message.chat.id, "Error, please try later")
+            return
+
+        chat = response.json()
+
+        gpt_messages = await logic.chatm_to_gptchatm(chat['messages'], chat['personality_description'])
+        gpt_answer = await logic.get_message_from_gpt(gpt_messages)
+
+        response_save_message = await save_gpt_message(gpt_messages[0], chat['id'])
+
+        if response_save_message == 201:
+            await bot.send_message(message.chat.id, gpt_answer[0])
+        else:
+            await bot.send_message(message.chat.id, 'Error')
+
+    except Exception as e:
+        await bot.send_message(message.chat.id, f"Error: {e}")
 
 
+async def save_gpt_message(text, chat_id):
+    data = {
+        'sender': 'Bot',
+        'text': text,
+        'chat_id': chat_id,
+    }
 
-
-
-
-
-
-
-
-
-
+    response = requests.post(f"{server_url}/chats/send-message/", data=data)
+    return response.status_code

@@ -17,11 +17,11 @@ _providers = [
 ]
 
 
-async def run_provider(provider: g4f.Provider.AsyncProvider, message: str) -> object:
+async def run_provider(provider: g4f.Provider.AsyncProvider, chat_messages) -> object:
     try:
         response = await provider.create_async(
             model=g4f.models.default.name,
-            messages=[{'role': 'user', 'content': message}]
+            messages=chat_messages
         )
         print(f"{provider.__name__}:", response)
         return response
@@ -31,10 +31,18 @@ async def run_provider(provider: g4f.Provider.AsyncProvider, message: str) -> ob
         return f"Error: {e}"
 
 
-async def run_all(message):
-    return await asyncio.gather(run_provider(g4f.Provider.You, message))
+async def get_message_from_gpt(chat_messages):
+    return await asyncio.gather(run_provider(g4f.Provider.You, chat_messages))
 
 
-def text_to_html(text):
-    return html.escape(text)
+async def chatm_to_gptchatm(messages, per_desc):
+    gpt_messages = []
+
+    if per_desc:
+        gpt_messages.append({'role': 'system', 'content': per_desc})
+
+    for message in messages:
+        gpt_messages.append({'role': message['sender'], 'content': message['text']})
+
+    return gpt_messages
 
