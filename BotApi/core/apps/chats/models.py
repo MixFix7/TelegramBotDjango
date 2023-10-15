@@ -14,8 +14,9 @@ class Chat(models.Model):
 
 class Message(models.Model):
     chat = models.ForeignKey(Chat, related_name='messages', on_delete=models.CASCADE)
-    sender = models.CharField(max_length=200)
+    sender = models.CharField(max_length=50)
     text = models.TextField(null=True, blank=True)
+    name = models.CharField(max_length=200)
 
     dispatch_date = models.DateTimeField(auto_now_add=True)
 

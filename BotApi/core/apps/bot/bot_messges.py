@@ -1,5 +1,5 @@
 welcome_message = """
-    Hi there, let's start development a new telegram bot? 
+   <b>Hello, I am a bot that can create digital copies of people. Write /help to show a list of commands</b>
 """
 
 error_message = "Error, please try again later"
@@ -14,11 +14,15 @@ If you do not want to set a description for the bot, then write <b>YouBotName - 
 """
 
 chat_created_successfully = """
-    <b>Chat created, now you can chat with your bot, write /list_chats to show a list of your chats</b>
+    <b>Chat created, now you can chat with your bot, write /select_chat to show a list of your chats</b>
 """
 
 you_talking_with = """
     <b>You are talking with chatbot: </b>
+"""
+
+you_dont_have_chats = """
+    <b>You don't have any chats, write /new_chat to create a chat</b>
 """
 
 to_exit = """
@@ -30,13 +34,12 @@ you_out = """
 """
 
 list_of_commands = """
-    <b>Commands</b>
+<b>Commands</b>
 
-    <b>/speaking_with_bot - Start speaking with chatbot</b>
-    <b>/new_chat - Start new chat with ai</b>
-    <b>/menu - open the menu</b>
-    <b>/quit - To quit</b>
-
+<b>/help - Show a list of all commands</b>
+<b>/select_chat - Choose a chat to talk to ai</b>
+<b>/new_chat - Start new chat with ai</b>
+<b>/quit - To exit the chat</b>
 """
 
 unknown_command_message = """
@@ -44,4 +47,9 @@ unknown_command_message = """
 """
 
 select_chat_message = "<b>Select a chat:</b>"
+
+prompt_for_gpt4 = """
+    Model, please behave like a human and respond to the following messages in a contextually appropriate manner. 
+    Your goal is to imitate the behavior and reactions of the person in this correspondence and the description of this person:
+"""
 

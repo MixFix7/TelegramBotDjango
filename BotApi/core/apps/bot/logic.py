@@ -2,6 +2,8 @@ import openai
 import asyncio
 import g4f
 import html
+import sys
+from .bot_messges import *
 
 
 _providers = [
@@ -21,7 +23,7 @@ async def run_provider(provider: g4f.Provider.AsyncProvider, chat_messages) -> o
     print(chat_messages)
     try:
         response = await provider.create_async(
-            model='gpt-3.5-turbo',
+            model='gpt-4',
             messages=chat_messages
         )
         print(f"{provider.__name__}:", response)
@@ -40,10 +42,17 @@ async def chatm_to_gptchatm(messages, per_desc):
     gpt_messages = []
 
     if per_desc:
-        gpt_messages.append({'role': 'system', 'content': f"Now you are not an assistant, answer normally as a human being, behave like a normal person, imitate yourself just like the person described here: : {per_desc}"})
+        gpt_messages.append(
+            {'role': 'system', 'content': f"{prompt_for_gpt4} {per_desc}"}
+        )
 
     for message in messages:
-        gpt_messages.append({'role': message['sender'], 'content': message['text']})
+        gpt_messages.append({'role': message['sender'], 'name': message['name'], 'content': message['text']})
+
+    print(sys.getsizeof(gpt_messages))
+
+    while sys.getsizeof(gpt_messages) >= 240:
+        del gpt_messages[1]
 
     return gpt_messages
 

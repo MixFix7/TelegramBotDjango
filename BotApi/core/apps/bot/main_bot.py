@@ -30,7 +30,7 @@ async def main():
 
 @bot.message_handler(commands=['start'])
 async def send_welcome(message):
-    await bot.reply_to(message, welcome_message)
+    await bot.send_message(message.chat.id, welcome_message)
 
 
 @bot.message_handler(commands=['quit'])
@@ -57,13 +57,18 @@ async def handle_speaking_with_chatbot(message):
     state[message.from_user.id] = 'speaking_with_bot'
 
 
-@bot.message_handler(commands=['list_chats'])
+@bot.message_handler(commands=['select_chat'])
 async def select_chat_from_list(message):
     try:
         response = requests.get(f"{server_url}/chats/get-user-chats-by-id/{message.from_user.id}/")
+        chats = response.json()
+
+        if len(chats) == 0:
+            await bot.send_message(message.chat.id, you_dont_have_chats)
+            return
 
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        for chat in response.json():
+        for chat in chats:
             chat_name = chat['name']
             button = types.KeyboardButton(chat_name)
             keyboard.add(button)
@@ -143,7 +148,8 @@ async def open_selected_chat(message):
     state[message.from_user.id] = f"talking_with_chatbot: {chat_data['id']}"
 
     reply_keyboard = types.ReplyKeyboardRemove()
-    await bot.send_message(message.chat.id, f"You in chat: {chat_data['name']}", reply_markup=reply_keyboard)
+    await bot.send_message(message.chat.id, f"<b>You in chat: {chat_data['name']}</>", reply_markup=reply_keyboard)
+    await bot.send_message(message.chat.id, to_exit)
 
 
 async def send_message_from_chatbot(message):
@@ -160,7 +166,7 @@ async def send_message_from_chatbot(message):
         gpt_messages = await logic.chatm_to_gptchatm(chat['messages'], chat['personality_description'])
         gpt_answer = await logic.get_message_from_gpt(gpt_messages)
 
-        response_save_message = await save_gpt_message(gpt_answer[0], chat['id'])
+        response_save_message = await save_gpt_message(gpt_answer[0], chat)
 
         if response_save_message == 201:
             await bot.send_message(message.chat.id, gpt_answer[0])
@@ -171,11 +177,12 @@ async def send_message_from_chatbot(message):
         await bot.send_message(message.chat.id, f"Error: {e}")
 
 
-async def save_gpt_message(text, chat_id):
+async def save_gpt_message(text, chat):
     data = {
         'sender': 'Bot',
         'text': text,
-        'chat_id': chat_id,
+        'chat_id': chat['id'],
+        'name': chat['name'],
     }
 
     response = requests.post(f"{server_url}/chats/send-message/", data=data)
