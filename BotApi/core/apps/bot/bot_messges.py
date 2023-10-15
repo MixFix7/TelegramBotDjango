@@ -5,11 +5,16 @@ welcome_message = """
 error_message = "Error, please try again later"
 
 please_write_name_for_chat = """
-    <b>Write a name for the new chat</b>
+<b>Write a name for the chat, and then write a description for the bot, which can be a description of a person, a robot, or anything else. </b>
+
+Example: 
+<b>YouBotName - A friendly smart assistant who is always ready to help</b>
+    
+If you do not want to set a description for the bot, then write <b>YouBotName - empty</b> to make the description empty
 """
 
 chat_created_successfully = """
-    <b>The chat has been created, now send a description of the person or creature that the chatbot will imitate.</b>
+    <b>Chat created, now you can chat with your bot, write /list_chats to show a list of your chats</b>
 """
 
 you_talking_with = """

@@ -18,9 +18,10 @@ _providers = [
 
 
 async def run_provider(provider: g4f.Provider.AsyncProvider, chat_messages) -> object:
+    print(chat_messages)
     try:
         response = await provider.create_async(
-            model=g4f.models.default.name,
+            model='gpt-3.5-turbo',
             messages=chat_messages
         )
         print(f"{provider.__name__}:", response)
@@ -32,14 +33,14 @@ async def run_provider(provider: g4f.Provider.AsyncProvider, chat_messages) -> o
 
 
 async def get_message_from_gpt(chat_messages):
-    return await asyncio.gather(run_provider(g4f.Provider.You, chat_messages))
+    return await asyncio.gather(run_provider(g4f.Provider.GptGo, chat_messages))
 
 
 async def chatm_to_gptchatm(messages, per_desc):
     gpt_messages = []
 
     if per_desc:
-        gpt_messages.append({'role': 'system', 'content': per_desc})
+        gpt_messages.append({'role': 'system', 'content': f"Now you are not an assistant, answer normally as a human being, behave like a normal person, imitate yourself just like the person described here: : {per_desc}"})
 
     for message in messages:
         gpt_messages.append({'role': message['sender'], 'content': message['text']})

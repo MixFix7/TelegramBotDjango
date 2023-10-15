@@ -100,7 +100,7 @@ async def send_message_chatbot(message):
         data = {
             'chat_id': chat_id,
             'text': text,
-            'sender': sender_name
+            'sender': 'User'
         }
 
         response = requests.post(f"{server_url}/chats/send-message/", data=data)
@@ -117,15 +117,20 @@ async def send_message_chatbot(message):
 @bot.message_handler(func=lambda message: state.get(message.from_user.id) == 'new_chat')
 async def start_new_chat(message):
     try:
+        hyphen_symbol_index = message.text.find('-')
+
         data = {
-            'name': message.text,
+            'name': message.text[:hyphen_symbol_index-1],
             'chat_user_id': message.from_user.id,
-            'chat_username': message.from_user.first_name
+            'chat_username': message.from_user.first_name,
+            'personality_description': message.text[hyphen_symbol_index+1:] if message.text[hyphen_symbol_index+1:] != 'empty' else None,
         }
 
         response = requests.post(f"{server_url}/chats/create-new-chat/", data=data)
 
         await bot.send_message(message.chat.id, chat_created_successfully)
+        state[message.from_user.id] = ''
+
     except Exception as e:
         await bot.send_message(message.chat.id, f'Error: {e}')
 
@@ -155,7 +160,7 @@ async def send_message_from_chatbot(message):
         gpt_messages = await logic.chatm_to_gptchatm(chat['messages'], chat['personality_description'])
         gpt_answer = await logic.get_message_from_gpt(gpt_messages)
 
-        response_save_message = await save_gpt_message(gpt_messages[0], chat['id'])
+        response_save_message = await save_gpt_message(gpt_answer[0], chat['id'])
 
         if response_save_message == 201:
             await bot.send_message(message.chat.id, gpt_answer[0])
